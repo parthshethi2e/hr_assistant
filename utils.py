@@ -61,20 +61,22 @@ def rank_candidates(model, jd_text, resumes):
     prompt = f"""
 You are an expert AI recruiter.
 
-Compare the Job Description with candidate resumes.
+Compare the job description with the candidate resumes.
 
-Rank candidates from BEST to WORST.
+Return ONLY valid JSON.
 
-For each candidate provide:
+Format:
 
-Rank
-Candidate Name
-Score (0-100)
-
-Selected Reasons (strengths)
-Rejected Reasons (missing skills)
-
-Provide a short justification.
+[
+ {{
+   "rank": 1,
+   "candidate": "Candidate Name",
+   "score": 0-100,
+   "strengths": ["skill1","skill2"],
+   "missing": ["skill1","skill2"],
+   "summary": "short justification"
+ }}
+]
 
 Job Description:
 {jd_text}

@@ -1,6 +1,7 @@
 import streamlit as st
+import json
 from utils import configure_gemini, extract_text, rank_candidates
-import re
+
 
 st.set_page_config(
     page_title="AI HR Assistant",
@@ -8,6 +9,15 @@ st.set_page_config(
     layout="wide"
 )
 
+
+def get_rank_icon(rank):
+    if rank == 1:
+        return "🥇"
+    elif rank == 2:
+        return "🥈"
+    elif rank == 3:
+        return "🥉"
+    return "🏅"
 
 # Load Gemini model
 model = configure_gemini()
@@ -78,7 +88,13 @@ Resume:
 
 """
 
-            result = rank_candidates(model, jd_text, resume_data)
+        result = rank_candidates(model, jd_text, resume_data)
+        try:
+            data = json.loads(result)
+        except:
+            st.error("AI response parsing failed")
+            st.code(result)
+            st.stop()
 
         st.success("Analysis Complete")
 
@@ -87,35 +103,31 @@ Resume:
         st.header("🏆 Candidate Rankings")
 
         # Split candidates
-        candidates = re.split(r"Rank\s*\d+", result)
 
         rank = 1
 
-        for candidate in candidates:
+        for candidate in data:
 
-            if len(candidate.strip()) < 20:
-                continue
+            rank = candidate["rank"]
+            name = candidate["candidate"]
+            score = candidate["score"]
 
-            # Extract score
-            score_match = re.search(r"Score:\s*(\d+)", candidate)
+            icon = get_rank_icon(rank)
+            st.subheader(f"{icon} Rank {rank} — {name}")
 
-            score = int(score_match.group(1)) if score_match else 70
+            st.progress(score / 100)
 
-            with st.container():
+            # Strengths
+            st.markdown("🟢 **Strengths**")
+            for s in candidate["strengths"]:
+                st.write(f"- {s}")
 
-                st.markdown(
-                    f"""
-                    ### 🥇 Rank {rank}
-                    """,
-                )
+            # Missing Skills
+            st.markdown("🔴 **Missing Skills**")
+            for m in candidate["missing"]:
+                st.write(f"- {m}")
 
-                # Score progress bar
-                st.progress(score / 100)
+            # Summary
+            st.info(candidate["summary"])
 
-                # Candidate details
-                clean_text = candidate.replace("**", "")
-                st.markdown(clean_text)
-
-                st.divider()
-
-            rank += 1
+            st.divider()
