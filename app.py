@@ -1,7 +1,7 @@
 import streamlit as st
 import json
 from utils import configure_gemini, extract_text, rank_candidates
-
+import plotly.express as px
 
 st.set_page_config(
     page_title="AI HR Assistant",
@@ -119,12 +119,30 @@ Resume:
 
             try:
                 data = json.loads(result)
+                names = [c["candidate"] for c in data]
+                scores = [c["score"] for c in data]
             except:
                 st.error("AI response parsing failed")
                 st.code(result)
                 st.stop()
 
         st.success("Analysis Complete")
+        st.divider()
+        
+        st.subheader("📊 Candidate Score Comparison")
+
+        fig = px.bar(
+            x=names,
+            y=scores,
+            labels={"x": "Candidate", "y": "Score"},
+            text=scores,
+            color=scores,
+            color_continuous_scale="Blues"
+        )
+
+        fig.update_traces(textposition="outside")
+
+        st.plotly_chart(fig, width="stretch")
         st.divider()
         st.header("🏆 Candidate Rankings")
 
