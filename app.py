@@ -9,6 +9,34 @@ st.set_page_config(
     layout="wide"
 )
 
+st.markdown("""
+<style>
+
+.card {
+    padding:20px;
+    border-radius:12px;
+    background-color:#f8f9fa;
+    margin-bottom:20px;
+    border:1px solid #e6e6e6;
+}
+
+.card-title {
+    font-size:20px;
+    font-weight:600;
+}
+
+.skill-green {
+    color:green;
+    font-weight:500;
+}
+
+.skill-red {
+    color:red;
+    font-weight:500;
+}
+
+</style>
+""", unsafe_allow_html=True)
 
 def get_rank_icon(rank):
     if rank == 1:
@@ -76,7 +104,6 @@ if st.button("🚀 Analyze Candidates", use_container_width=True):
             resume_data = ""
 
             for resume in resume_files:
-
                 resume_text = extract_text(resume)
 
                 resume_data += f"""
@@ -88,46 +115,53 @@ Resume:
 
 """
 
-        result = rank_candidates(model, jd_text, resume_data)
-        try:
-            data = json.loads(result)
-        except:
-            st.error("AI response parsing failed")
-            st.code(result)
-            st.stop()
+            result = rank_candidates(model, jd_text, resume_data)
+
+            try:
+                data = json.loads(result)
+            except:
+                st.error("AI response parsing failed")
+                st.code(result)
+                st.stop()
 
         st.success("Analysis Complete")
-
         st.divider()
-
         st.header("🏆 Candidate Rankings")
 
-        # Split candidates
-
-        rank = 1
-
+        # ✅ NOW safe because data exists
         for candidate in data:
-
             rank = candidate["rank"]
             name = candidate["candidate"]
             score = candidate["score"]
 
+            strengths = candidate["strengths"]
+            missing = candidate["missing"]
+            summary = candidate["summary"]
+
             icon = get_rank_icon(rank)
-            st.subheader(f"{icon} Rank {rank} — {name}")
 
-            st.progress(score / 100)
+            with st.container():
 
-            # Strengths
-            st.markdown("🟢 **Strengths**")
-            for s in candidate["strengths"]:
-                st.write(f"- {s}")
+                st.markdown(
+                    f"<div class='card'><div class='card-title'>{icon} {name}</div>",
+                    unsafe_allow_html=True
+                )
 
-            # Missing Skills
-            st.markdown("🔴 **Missing Skills**")
-            for m in candidate["missing"]:
-                st.write(f"- {m}")
+                st.progress(score / 100)
+                st.write(f"Score: **{score}%**")
 
-            # Summary
-            st.info(candidate["summary"])
+                col1, col2 = st.columns(2)
 
-            st.divider()
+                with col1:
+                    st.markdown("🟢 **Strengths**")
+                    for s in strengths:
+                        st.write(f"• {s}")
+
+                with col2:
+                    st.markdown("🔴 **Missing Skills**")
+                    for m in missing:
+                        st.write(f"• {m}")
+
+                st.info(summary)
+
+                st.markdown("</div>", unsafe_allow_html=True)
