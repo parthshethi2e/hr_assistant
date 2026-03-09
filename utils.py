@@ -58,32 +58,93 @@ def extract_text(uploaded_file):
 # -----------------------------
 def rank_candidates(model, jd_text, resumes):
 
+#     prompt = f"""
+# You are an expert AI recruiter.
+
+# Compare the job description with the candidate resumes.
+
+# Return ONLY valid JSON.
+
+# Format:
+
+# [
+#  {{
+#    "rank": 1,
+#    "candidate": "Candidate Name",
+#    "score": 0-100,
+#    "strengths": ["skill1","skill2"],
+#    "missing": ["skill1","skill2"],
+#    "summary": "short justification"
+#  }}
+# ]
+
+# Job Description:
+# {jd_text}
+
+# Candidate Resumes:
+# {resumes}
+# """
+
     prompt = f"""
-You are an expert AI recruiter.
+    You are an expert AI recruiter.
 
-Compare the job description with the candidate resumes.
+    Compare the job description with the candidate resumes.
 
-Return ONLY valid JSON.
+    Return ONLY valid JSON.
 
-Format:
+    Format:
 
-[
- {{
-   "rank": 1,
-   "candidate": "Candidate Name",
-   "score": 0-100,
-   "strengths": ["skill1","skill2"],
-   "missing": ["skill1","skill2"],
-   "summary": "short justification"
- }}
-]
+    [
+    {{
+    "rank": 1,
+    "candidate": "resume_file_name",
+    "score": 0-100,
+    "strengths": ["skill1","skill2"],
+    "missing": ["skill1","skill2"],
+    "summary": "short justification"
+    }}
+    ]
 
-Job Description:
-{jd_text}
+    Use the EXACT resume file name.
 
-Candidate Resumes:
-{resumes}
-"""
+    Job Description:
+    {jd_text}
+
+    Candidate Resumes:
+    {resumes}
+    """
+
+
+
+    response = model.generate_content(prompt)
+
+    return response.text
+
+def generate_interview_questions(model, jd_text, resume_text):
+
+    prompt = f"""
+    You are an expert technical interviewer.
+
+    Generate 5 interview questions.
+
+    Return ONLY JSON like this:
+
+    [
+    "question1",
+    "question2",
+    "question3",
+    "question4",
+    "question5"
+    ]
+
+    Do not include markdown or code blocks.
+
+    Job Description:
+    {jd_text}
+
+    Resume:
+    {resume_text}
+    """
 
     response = model.generate_content(prompt)
 
